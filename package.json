@@ -1,7 +1,7 @@
 {
-	"name": "obsidian-sample-plugin",
-	"version": "1.0.0",
-	"description": "This is a sample plugin for Obsidian (https://obsidian.md)",
+	"name": "albus-obsidianx",
+	"version": "0.1.0",
+	"description": "A powerful Obsidian plugin for snippets and plugins management.",
 	"main": "main.js",
 	"type": "module",
 	"scripts": {
