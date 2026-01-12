@@ -1,5 +1,5 @@
 import { Plugin } from 'obsidian';
-import { ObsidianXSettings, PluginMetadata, CSSSnippetMetadata } from './types';
+import { ObsidianXSettings, PluginMetadata, CSSSnippetMetadata, OpenerSettings } from './types';
 
 /**
  * 默认插件分组配置
@@ -18,13 +18,26 @@ export const DEFAULT_CSS_GROUPS = {
 };
 
 /**
+ * Opener 默认设置
+ */
+export const DEFAULT_OPENER_SETTINGS: OpenerSettings = {
+    newTab: true,
+    PDFApp: true,
+    extOnlyWhenMetaKey: true,
+    allExt: false,
+    custExt: false,
+    custExtList: [],
+};
+
+/**
  * 默认设置
  */
 export const DEFAULT_SETTINGS: ObsidianXSettings = {
     groups: DEFAULT_GROUPS,
     cssGroups: DEFAULT_CSS_GROUPS,
     metadata: {},
-    cssSnippetMetadata: {}
+    cssSnippetMetadata: {},
+    opener: DEFAULT_OPENER_SETTINGS
 };
 
 /**
@@ -59,6 +72,9 @@ export class DataStorage {
         }
         if (!this.settings.cssSnippetMetadata) {
             this.settings.cssSnippetMetadata = {};
+        }
+        if (!this.settings.opener) {
+            this.settings.opener = DEFAULT_OPENER_SETTINGS;
         }
     }
 

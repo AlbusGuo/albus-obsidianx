@@ -2,17 +2,27 @@ import { Plugin } from 'obsidian';
 import { DataStorage } from './data-storage';
 import { PluginManagerModal } from './plugin-manager-modal';
 import { GroupManagementSettingTab } from './group-settings';
+import { OpenerManager } from './opener-manager';
 
 /**
  * ObsidianX 主插件类
  */
 export default class ObsidianXPlugin extends Plugin {
 	private dataStorage: DataStorage;
+	private openerManager: OpenerManager | null = null;
 
 	async onload() {
 		// 初始化数据存储
 		this.dataStorage = new DataStorage(this);
 		await this.dataStorage.loadSettings();
+
+		// 初始化 Opener 功能
+		this.openerManager = new OpenerManager(
+			this.app,
+			this,
+			this.dataStorage.getSettings().opener
+		);
+		this.openerManager.initialize();
 
 		// 添加左侧功能区图标
 		this.addRibbonIcon('package', '打开插件管理器', () => {
@@ -36,7 +46,30 @@ export default class ObsidianXPlugin extends Plugin {
 	}
 
 	onunload() {
-		// 清理工作
+		// 清理 Opener 功能
+		if (this.openerManager) {
+			this.openerManager.cleanup();
+			this.openerManager = null;
+		}
+	}
+
+	/**
+	 * 保存设置
+	 */
+	async saveSettings(): Promise<void> {
+		await this.dataStorage.saveSettings();
+		
+		// 更新 Opener 设置
+		if (this.openerManager) {
+			this.openerManager.updateSettings(this.dataStorage.getSettings().opener);
+		}
+	}
+
+	/**
+	 * 获取数据存储对象
+	 */
+	getDataStorage(): DataStorage {
+		return this.dataStorage;
 	}
 
 	/**
