@@ -35,6 +35,8 @@ export const DEFAULT_OPENER_SETTINGS: OpenerSettings = {
 export const DEFAULT_SETTINGS: ObsidianXSettings = {
     groups: DEFAULT_GROUPS,
     cssGroups: DEFAULT_CSS_GROUPS,
+    groupColors: {},
+    cssGroupColors: {},
     metadata: {},
     cssSnippetMetadata: {},
     opener: DEFAULT_OPENER_SETTINGS
@@ -72,6 +74,12 @@ export class DataStorage {
         }
         if (!this.settings.cssSnippetMetadata) {
             this.settings.cssSnippetMetadata = {};
+        }
+        if (!this.settings.groupColors) {
+            this.settings.groupColors = {};
+        }
+        if (!this.settings.cssGroupColors) {
+            this.settings.cssGroupColors = {};
         }
         if (!this.settings.opener) {
             this.settings.opener = DEFAULT_OPENER_SETTINGS;
@@ -169,6 +177,44 @@ export class DataStorage {
      */
     async deleteCSSSnippetMetadata(snippetName: string): Promise<void> {
         delete this.settings.cssSnippetMetadata[snippetName];
+        await this.saveSettings();
+    }
+
+    /**
+     * 获取插件分组颜色
+     */
+    getGroupColor(groupKey: string): string {
+        return this.settings.groupColors[groupKey] || '';
+    }
+
+    /**
+     * 保存插件分组颜色
+     */
+    async saveGroupColor(groupKey: string, color: string): Promise<void> {
+        if (color) {
+            this.settings.groupColors[groupKey] = color;
+        } else {
+            delete this.settings.groupColors[groupKey];
+        }
+        await this.saveSettings();
+    }
+
+    /**
+     * 获取CSS片段分组颜色
+     */
+    getCSSGroupColor(groupKey: string): string {
+        return this.settings.cssGroupColors[groupKey] || '';
+    }
+
+    /**
+     * 保存CSS片段分组颜色
+     */
+    async saveCSSGroupColor(groupKey: string, color: string): Promise<void> {
+        if (color) {
+            this.settings.cssGroupColors[groupKey] = color;
+        } else {
+            delete this.settings.cssGroupColors[groupKey];
+        }
         await this.saveSettings();
     }
 }

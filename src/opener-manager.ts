@@ -316,11 +316,11 @@ export class OpenerManager {
                     // 检查浮动窗口
                     // @ts-ignore - 浮动窗口 API
                     parentThis.app.workspace.getLayout()?.floating?.children?.forEach((win: any) => {
-                        if (win?.type !== "window") return console.log("Opener: 发现奇怪的浮动对象（非窗口）", win)
+                        if (win?.type !== "window") return;
                         win.children?.forEach((tabs: any) => {
-                            if (tabs?.type !== "tabs") return console.log("Opener: 发现奇怪的浮动对象（非标签组）", tabs)
+                            if (tabs?.type !== "tabs") return;
                             tabs.children?.forEach((leaf: any) => {
-                                if (leaf?.type !== "leaf") return console.log("Opener: 发现奇怪的浮动对象（非叶子）", leaf)
+                                if (leaf?.type !== "leaf") return;
                                 const foundLeaf = parentThis.app.workspace.getLeafById(leaf.id);
                                 if (foundLeaf) {
                                     pushLeaveIfMatching(foundLeaf);
@@ -361,7 +361,6 @@ export class OpenerManager {
                     // 将临时状态重定向到新标签页（用于 Templater）
                     const setEphemeralState = this.setEphemeralState;
                     this.setEphemeralState = (state) => {
-                        console.log("Opener: 重定向临时状态到新标签页", state);
                         newLeaf.setEphemeralState.apply(newLeaf, [state]);
                     };
                     setTimeout(() => {

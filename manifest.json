@@ -1,11 +1,10 @@
 {
 	"id": "albus-obsidianx",
 	"name": "ObsidianX",
-	"version": "0.3.0",
+	"version": "0.4.0",
 	"minAppVersion": "1.11.4",
 	"description": "A powerful Obsidian plugin for snippets and plugins management.",
 	"author": "Albus",
 	"authorUrl": "https://github.com/AlbusGuo",
-	"fundingUrl": "https://obsidian.md/pricing",
 	"isDesktopOnly": false
 }

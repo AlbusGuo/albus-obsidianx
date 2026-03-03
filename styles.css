@@ -100,14 +100,6 @@
   opacity: 0.9;
 }
 
-.albus-obsidianx-sidebar-view-item {
-  font-weight: 600;
-}
-
-.albus-obsidianx-sidebar-divider {
-  display: none;
-}
-
 /* 右侧主内容区 */
 .albus-obsidianx-main-content {
   flex: 1;
@@ -149,84 +141,6 @@
   margin-bottom: 8px;
 }
 
-/* 三段式状态滑块 */
-.albus-obsidianx-status-slider {
-  display: flex;
-  background: var(--background-modifier-border);
-  border-radius: 20px;
-  padding: 2px;
-  gap: 2px;
-}
-
-.albus-obsidianx-slider-option {
-  padding: 4px 12px;
-  font-size: 12px;
-  color: var(--text-muted);
-  cursor: pointer;
-  border-radius: 18px;
-  transition: all 0.2s ease;
-  white-space: nowrap;
-  user-select: none;
-}
-
-.albus-obsidianx-slider-option:hover {
-  color: var(--text-normal);
-}
-
-.albus-obsidianx-slider-option.active {
-  background: var(--interactive-accent);
-  color: var(--text-on-accent);
-  font-weight: 500;
-}
-
-/* 通用操作按钮（与列表项按钮一致） */
-.albus-obsidianx-action-button {
-  width: 28px;
-  height: 28px;
-  background: transparent;
-  border: none;
-  border-radius: 4px;
-  cursor: pointer;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  color: var(--icon-color);
-  transition: all 0.2s ease;
-  flex-shrink: 0;
-  padding: 0;
-}
-
-.albus-obsidianx-action-button:hover {
-  background: var(--background-modifier-hover);
-  color: var(--text-normal);
-}
-
-/* 新建CSS片段按钮 */
-.albus-obsidianx-create-snippet-button {
-  padding: 8px 16px;
-  background: var(--interactive-accent);
-  color: var(--text-on-accent);
-  border: none;
-  border-radius: 6px;
-  font-size: 14px;
-  font-weight: 500;
-  cursor: pointer;
-  transition: all 0.2s ease;
-  display: flex;
-  align-items: center;
-  gap: 6px;
-  white-space: nowrap;
-}
-
-.albus-obsidianx-create-snippet-button:hover {
-  background: var(--interactive-accent-hover);
-}
-
-.albus-obsidianx-create-snippet-button .albus-obsidianx-button-icon {
-  display: inline-flex;
-  align-items: center;
-}
-
 .albus-obsidianx-toolbar-row:last-child {
   margin-bottom: 0;
 }
@@ -236,12 +150,6 @@
   gap: 12px;
   align-items: center;
   justify-content: space-between;
-}
-
-.albus-obsidianx-toolbar-right-buttons {
-  display: flex;
-  gap: 12px;
-  align-items: center;
 }
 
 /* 搜索框容器 */
@@ -286,75 +194,12 @@
   z-index: 2;
 }
 
-/* 状态筛选小球按钮 */
-.albus-obsidianx-status-ball {
-  width: 24px;
-  height: 24px;
-  border-radius: 50%;
-  border: 2px solid var(--background-modifier-border);
-  cursor: pointer;
-  transition: all 0.25s ease;
-  flex-shrink: 0;
-  padding: 0;
-}
-
-.albus-obsidianx-status-ball:hover {
-  transform: scale(1.1);
-}
-
-.albus-obsidianx-status-ball.status-all {
-  background: var(--icon-color);
-  border-color: var(--icon-color);
-}
-
-.albus-obsidianx-status-ball.status-enabled {
-  background: var(--text-success);
-  border-color: var(--text-success);
-}
-
-.albus-obsidianx-status-ball.status-disabled {
-  background: var(--text-error);
-  border-color: var(--text-error);
-}
-
 /* 统计信息 */
 .albus-obsidianx-stats-info {
   padding: 4px 0 0 0;
   color: var(--text-muted);
   font-size: 13px;
   white-space: nowrap;
-}
-
-.albus-obsidianx-stats-text {
-  color: var(--text-normal);
-  font-weight: 500;
-}
-
-.albus-obsidianx-stats-text strong {
-  color: var(--text-accent);
-  font-size: 14px;
-}
-
-.albus-obsidianx-stats-details {
-  margin-left: 8px;
-}
-
-.albus-obsidianx-stats-details .enabled {
-  color: var(--text-success);
-  font-weight: 600;
-}
-
-.albus-obsidianx-stats-details .disabled {
-  color: var(--text-error);
-  font-weight: 600;
-}
-
-.albus-obsidianx-total-stats {
-  margin-left: 12px;
-  background: rgba(var(--text-muted-rgb), 0.1);
-  padding: 2px 6px;
-  border-radius: 4px;
-  font-size: 12px;
 }
 
 /* 插件列表 */
@@ -410,14 +255,39 @@
 }
 
 .albus-obsidianx-desktop-only-badge {
-  display: flex;
+  display: inline-flex;
   align-items: center;
-  gap: 3px;
-  font-size: 11px;
+  font-size: 10px;
   color: var(--text-muted);
-  background: var(--background-modifier-border);
-  padding: 1px 6px;
-  border-radius: 3px;
+  background: var(--background-modifier-hover);
+  padding: 0 5px;
+  border-radius: 4px;
+  line-height: 1.6;
+  white-space: nowrap;
+  border: 1px solid var(--background-modifier-border);
+}
+
+/* 分类标签 */
+.albus-obsidianx-category-tag {
+  display: inline-flex;
+  align-items: center;
+  font-size: 10px;
+  color: var(--text-on-accent);
+  background: var(--interactive-accent);
+  padding: 0 6px;
+  border-radius: 4px;
+  line-height: 1.6;
+  white-space: nowrap;
+  opacity: 0.85;
+}
+
+/* 可编辑名称 */
+.albus-obsidianx-editable-name {
+  cursor: pointer;
+}
+
+.albus-obsidianx-editable-name:hover {
+  color: var(--text-accent);
 }
 
 /* 版本信息 */
@@ -479,13 +349,11 @@
 .albus-obsidianx-remark-text {
   font-size: 12px;
   line-height: 1.4;
-  max-height: 16px;
-  overflow: hidden;
-  text-overflow: ellipsis;
-  white-space: nowrap;
   display: block;
   color: var(--text-muted);
   padding: 0;
+  white-space: pre-wrap;
+  word-break: break-word;
 }
 
 .albus-obsidianx-remark-textarea {
@@ -543,11 +411,7 @@
   pointer-events: none;
 }
 
-/* 分组下拉框 */
-.albus-obsidianx-group-dropdown {
-  position: relative;
-}
-
+/* 分组按钮 */
 .albus-obsidianx-group-button {
   width: 28px;
   height: 28px;
@@ -566,41 +430,6 @@
 
 .albus-obsidianx-group-button:hover {
   background: var(--background-modifier-hover) !important;
-}
-
-.albus-obsidianx-group-dropdown-content {
-  position: absolute;
-  top: 100%;
-  right: 0;
-  background: var(--background-primary);
-  border: 1px solid var(--background-modifier-border);
-  border-radius: 6px;
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
-  z-index: 100;
-  margin-top: 4px;
-  min-width: 120px;
-  max-height: 200px;
-  overflow-y: auto;
-}
-
-.albus-obsidianx-group-option {
-  padding: 8px 12px;
-  cursor: pointer;
-  transition: background-color 0.2s ease;
-  font-size: 13px;
-  color: var(--text-normal);
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-}
-
-.albus-obsidianx-group-option:hover {
-  background: var(--background-modifier-hover) !important;
-}
-
-.albus-obsidianx-group-option.active {
-  background: var(--interactive-accent);
-  color: white;
 }
 
 /* 删除按钮 */
@@ -660,265 +489,53 @@
   font-size: 13px;
 }
 
-/* 旧模态框样式（保留通用样式） */
-.albus-obsidianx-modal-header {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  padding: 20px;
-  border-bottom: 1px solid var(--background-modifier-border);
+/* 模态框通用样式 */
+.obsidianx-modal-message {
+  margin: 12px 0 16px 0;
 }
 
-.albus-obsidianx-modal-header h3 {
-  margin: 0;
-  color: var(--text-normal);
-  font-size: 18px;
-}
-
-.albus-obsidianx-modal-header button {
-  background: none;
-  border: none;
-  cursor: pointer;
-  color: var(--text-muted);
-  width: 30px;
-  height: 30px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  border-radius: 4px;
-}
-
-.albus-obsidianx-modal-header button:hover {
-  background: var(--background-secondary);
-  color: var(--text-normal);
-}
-
-.albus-obsidianx-modal-body {
-  padding: 20px;
-  flex: 1;
-  overflow-y: auto;
-}
-
-.albus-obsidianx-warning-text {
-  color: var(--text-error);
-  font-size: 13px;
-  margin-top: 8px;
-  padding: 8px;
-  background: rgba(var(--text-error-rgb), 0.1);
-  border-radius: 4px;
-  border-left: 3px solid var(--text-error);
-  display: flex;
-  align-items: center;
-  gap: 6px;
-}
-
-.albus-obsidianx-modal-footer {
+.obsidianx-modal-buttons {
   display: flex;
   justify-content: flex-end;
-  gap: 12px;
-  padding: 20px;
-  border-top: 1px solid var(--background-modifier-border);
-}
-
-.albus-obsidianx-modal-footer button {
-  padding: 8px 16px;
-  border-radius: 6px;
-  cursor: pointer;
-  font-size: 13px;
-  transition: all 0.3s ease;
-  border: none;
-}
-
-.albus-obsidianx-cancel-button {
-  background: transparent;
-  border: 1px solid var(--background-modifier-border) !important;
-  color: var(--text-normal);
-}
-
-.albus-obsidianx-cancel-button:hover {
-  background: var(--background-secondary);
-}
-
-.albus-obsidianx-confirm-button {
-  background: var(--text-error);
-  color: white;
-}
-
-.albus-obsidianx-confirm-button:hover {
-  background: var(--text-error-hover);
-}
-
-/* 输入框标签 */
-.albus-obsidianx-input-label {
-  display: block;
-  font-size: 14px;
-  font-weight: 500;
-  color: var(--text-normal);
-  margin-bottom: 8px;
-}
-
-/* 文本输入框 */
-.albus-obsidianx-text-input {
-  width: 100%;
-  padding: 10px 12px;
-  background: var(--background-primary);
-  border: 1px solid var(--background-modifier-border);
-  border-radius: 6px;
-  color: var(--text-normal);
-  font-size: 14px;
-  outline: none;
-  box-sizing: border-box;
-  transition: all 0.2s ease;
-}
-
-.albus-obsidianx-text-input:hover,
-.albus-obsidianx-text-input:focus {
-  border-color: var(--interactive-accent);
-}
-
-/* 提示文本 */
-.albus-obsidianx-hint-text {
-  font-size: 12px;
-  color: var(--text-muted);
-  margin-top: 8px;
-}
-
-/* 创建CSS片段模态框 */
-.albus-obsidianx-create-snippet-modal {
-  padding: 0;
-}
-
-.albus-obsidianx-snippet-header {
-  padding: 20px 24px;
-  border-bottom: 1px solid var(--background-modifier-border);
-}
-
-.albus-obsidianx-snippet-header h3 {
-  margin: 0;
-  font-size: 18px;
-  color: var(--text-normal);
-}
-
-.albus-obsidianx-snippet-body {
-  padding: 24px;
-}
-
-.albus-obsidianx-snippet-footer {
-  padding: 16px 24px;
-  border-top: 1px solid var(--background-modifier-border);
-  display: flex;
-  justify-content: flex-end;
-  gap: 12px;
-}
-
-.albus-obsidianx-snippet-footer button {
-  padding: 8px 16px;
-  border-radius: 6px;
-  cursor: pointer;
-  font-size: 13px;
-  transition: all 0.2s ease;
-  border: none;
-}
-
-/* ========================================
-   设置界面样式
-   ======================================== */
-
-.albus-obsidianx-groups-list {
-  margin: 16px 0;
-  display: flex;
-  flex-direction: column;
-}
-
-.albus-obsidianx-group-item {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  padding: 10px 0;
-  border-bottom: 1px solid var(--background-modifier-border);
-}
-
-.albus-obsidianx-group-item:last-child {
-  border-bottom: none;
-}
-
-.albus-obsidianx-group-item-content {
-  flex: 1;
-}
-
-.albus-obsidianx-group-name-display {
-  padding: 4px 8px;
-  border-radius: 4px;
-  cursor: pointer;
-  font-size: 13px;
-  color: var(--text-normal);
-  transition: all 0.2s ease;
-  display: inline-block;
-}
-
-.albus-obsidianx-group-name-display:hover {
-  background: var(--background-modifier-hover);
-}
-
-.albus-obsidianx-group-edit-input {
-  width: 100%;
-}
-
-.albus-obsidianx-group-name-input {
-  width: 100%;
-  padding: 4px 8px;
-  border: 1px solid var(--interactive-accent);
-  border-radius: 4px;
-  background: var(--background-primary);
-  color: var(--text-normal);
-  font-size: 13px;
-  outline: none;
-}
-
-.albus-obsidianx-group-name-input:focus {
-  box-shadow: 0 0 0 2px rgba(var(--interactive-accent-rgb), 0.2);
-}
-
-.albus-obsidianx-group-item-actions {
-  display: flex;
-  align-items: center;
   gap: 8px;
 }
 
-.albus-obsidianx-group-delete-button {
-  width: 28px !important;
-  height: 28px !important;
-  background: transparent !important;
-  color: var(--icon-color) !important;
+.obsidianx-modal-input {
+  width: 100%;
+  padding: 8px;
+  margin: 12px 0 16px 0;
+  box-sizing: border-box;
+}
+
+.obsidianx-rename-input {
+  width: 100%;
+  padding: 4px 8px;
+  font-size: var(--font-ui-medium);
+  box-sizing: border-box;
+}
+
+.obsidianx-clickable {
   cursor: pointer;
-  display: flex !important;
-  align-items: center !important;
-  justify-content: center !important;
-  padding: 0 !important;
-  border: none !important;
-  box-shadow: none !important;
+}
+
+.obsidianx-inline-rename-input {
+  width: 100%;
+  padding: 2px 6px;
+  font-size: var(--font-ui-small);
+  border: 1px solid var(--background-modifier-border-focus);
   border-radius: 4px;
-  margin: 0 !important;
+  background: var(--background-primary);
+  color: var(--text-normal);
+  outline: none;
 }
 
-.albus-obsidianx-group-delete-button:hover {
-  background: var(--background-modifier-hover) !important;
-  color: var(--text-error) !important;
+.obsidianx-inline-rename-input:focus {
+  border-color: var(--interactive-accent);
+  box-shadow: 0 0 0 2px var(--background-modifier-border-focus);
 }
 
-.albus-obsidianx-no-groups-message {
-  text-align: center;
-  padding: 20px;
-  color: var(--text-muted);
-  font-size: 13px;
-  font-style: italic;
-  border-bottom: 1px solid var(--background-modifier-border);
-}
-
-.albus-obsidianx-add-group-section {
-  margin-top: 16px;
-  padding-top: 16px;
-  border-top: 1px solid var(--background-modifier-border);
+.obsidianx-no-border-top {
+  border-top: none !important;
 }
 
 /* 滚动条样式 */
@@ -952,8 +569,7 @@
   }
   
   .albus-obsidianx-search-wrapper,
-  .albus-obsidianx-status-dropdown,
-  .albus-obsidianx-groups-dropdown {
+  .albus-obsidianx-status-dropdown {
     width: 100%;
   }
   
@@ -973,95 +589,3 @@
     justify-content: flex-start;
   }
 }
-
-/* ========================================
-   设置界面样式 - 简洁版
-   ======================================== */
-
-/* 空状态 */
-.obsidianx-empty-state {
-  padding: 20px;
-  text-align: center;
-  color: var(--text-muted);
-  font-size: var(--font-ui-small);
-  font-style: italic;
-  background: var(--background-secondary);
-  border-radius: 6px;
-  margin-bottom: 12px;
-}
-
-/* 分组列表 */
-.obsidianx-group-list {
-  display: flex;
-  flex-direction: column;
-  gap: 8px;
-  margin-bottom: 16px;
-}
-
-/* 分组行 */
-.obsidianx-group-row {
-  display: flex;
-  align-items: center;
-  gap: 8px;
-  padding: 8px 12px;
-  background: var(--background-primary-alt);
-  border: 1px solid var(--background-modifier-border);
-  border-radius: 6px;
-  transition: all 0.15s ease;
-}
-
-.obsidianx-group-row:hover {
-  background: var(--background-modifier-hover);
-  border-color: var(--background-modifier-border-hover);
-}
-
-/* 分组输入框 */
-.obsidianx-group-input {
-  flex: 1;
-  padding: 6px 10px;
-  border: 1px solid transparent;
-  border-radius: 4px;
-  background: transparent;
-  color: var(--text-normal);
-  font-size: var(--font-ui-small);
-  transition: all 0.15s ease;
-}
-
-.obsidianx-group-input:hover {
-  background: var(--background-primary);
-  border-color: var(--background-modifier-border);
-}
-
-.obsidianx-group-input:focus {
-  background: var(--background-primary);
-  border-color: var(--interactive-accent);
-  outline: none;
-  box-shadow: 0 0 0 2px rgba(var(--interactive-accent-rgb), 0.1);
-}
-
-/* 删除按钮 */
-.obsidianx-group-delete-btn {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  width: 28px;
-  height: 28px;
-  padding: 0;
-  border: none;
-  background: transparent;
-  color: var(--icon-color);
-  cursor: pointer;
-  border-radius: 4px;
-  transition: all 0.15s ease;
-  opacity: 0.6;
-}
-
-.obsidianx-group-delete-btn:hover {
-  background: var(--background-modifier-error-hover);
-  color: var(--text-error);
-  opacity: 1;
-}
-
-.obsidianx-group-delete-btn svg {
-  width: 16px;
-  height: 16px;

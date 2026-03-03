@@ -1,4 +1,4 @@
-import { App, PluginSettingTab, Setting, Notice, Modal, ButtonComponent, setIcon, SettingGroup } from 'obsidian';
+import { App, PluginSettingTab, Setting, Notice, Modal, ButtonComponent, SettingGroup } from 'obsidian';
 import ObsidianXPlugin from './main';
 import { DataStorage } from './data-storage';
 
@@ -68,53 +68,68 @@ export class GroupManagementSettingTab extends PluginSettingTab {
                 const isEditing = this.editingGroup?.type === 'plugin' && this.editingGroup?.key === groupKey;
                 
                 settingGroup.addSetting((setting) => {
-                    if (isEditing) {
-                        // 编辑模式
-                        setting.addText((text) => {
-                            text
-                                .setValue(this.editingGroup!.value)
-                                .onChange((value) => {
-                                    if (this.editingGroup) {
-                                        this.editingGroup.value = value;
-                                    }
+                    setting
+                        .addColorPicker((picker) => {
+                            const currentColor = this.dataStorage.getGroupColor(groupKey);
+                            picker.setValue(currentColor || '#7f6df2');
+                            picker.onChange(async (value) => {
+                                await this.dataStorage.saveGroupColor(groupKey, value);
+                            });
+                        })
+                        .addExtraButton((button) => {
+                            button
+                                .setIcon('rotate-ccw')
+                                .setTooltip('重置为默认颜色')
+                                .onClick(async () => {
+                                    await this.dataStorage.saveGroupColor(groupKey, '');
+                                    this.display();
                                 });
-                            
-                            // 自动聚焦
-                            setTimeout(() => {
-                                text.inputEl.focus();
-                                text.inputEl.select();
-                            }, 0);
-                            
-                            // 键盘事件
-                            text.inputEl.addEventListener('keydown', (e) => {
-                                if (e.key === 'Enter') {
-                                    e.preventDefault();
-                                    this.saveEdit(groupKey, 'plugin');
-                                } else if (e.key === 'Escape') {
-                                    this.cancelEdit();
-                                }
-                            });
-                            
-                            // 失去焦点时保存
-                            text.inputEl.addEventListener('blur', () => {
-                                this.saveEdit(groupKey, 'plugin');
-                            });
+                        })
+                        .addExtraButton((button) => {
+                            button
+                                .setIcon('trash-2')
+                                .setTooltip('删除分组')
+                                .onClick(async () => {
+                                    await this.deleteGroup(groupKey, 'plugin');
+                                });
                         });
+
+                    if (isEditing) {
+                        // 编辑模式：在nameEl中放置输入框
+                        setting.nameEl.empty();
+                        const input = setting.nameEl.createEl('input', {
+                            type: 'text',
+                            value: this.editingGroup!.value,
+                            cls: 'obsidianx-inline-rename-input'
+                        });
+                        
+                        input.addEventListener('input', (e) => {
+                            if (this.editingGroup) {
+                                this.editingGroup.value = (e.target as HTMLInputElement).value;
+                            }
+                        });
+                        
+                        input.addEventListener('keydown', (e) => {
+                            if (e.key === 'Enter') {
+                                e.preventDefault();
+                                this.saveEdit(groupKey, 'plugin');
+                            } else if (e.key === 'Escape') {
+                                this.cancelEdit();
+                            }
+                        });
+                        
+                        input.addEventListener('blur', () => {
+                            this.saveEdit(groupKey, 'plugin');
+                        });
+
+                        setTimeout(() => {
+                            input.focus();
+                            input.select();
+                        }, 0);
                     } else {
                         // 显示模式
-                        setting
-                            .setName(groupName)
-                            .addExtraButton((button) => {
-                                button
-                                    .setIcon('trash-2')
-                                    .setTooltip('删除分组')
-                                    .onClick(async () => {
-                                        await this.deleteGroup(groupKey, 'plugin');
-                                    });
-                            });
-                        
-                        // 点击名称进入编辑
-                        setting.nameEl.style.cursor = 'pointer';
+                        setting.setName(groupName);
+                        setting.nameEl.addClass('obsidianx-clickable');
                         setting.nameEl.addEventListener('click', () => {
                             this.editingGroup = { type: 'plugin', key: groupKey, value: groupName };
                             this.display();
@@ -160,53 +175,68 @@ export class GroupManagementSettingTab extends PluginSettingTab {
                 const isEditing = this.editingGroup?.type === 'css' && this.editingGroup?.key === groupKey;
                 
                 settingGroup.addSetting((setting) => {
-                    if (isEditing) {
-                        // 编辑模式
-                        setting.addText((text) => {
-                            text
-                                .setValue(this.editingGroup!.value)
-                                .onChange((value) => {
-                                    if (this.editingGroup) {
-                                        this.editingGroup.value = value;
-                                    }
+                    setting
+                        .addColorPicker((picker) => {
+                            const currentColor = this.dataStorage.getCSSGroupColor(groupKey);
+                            picker.setValue(currentColor || '#7f6df2');
+                            picker.onChange(async (value) => {
+                                await this.dataStorage.saveCSSGroupColor(groupKey, value);
+                            });
+                        })
+                        .addExtraButton((button) => {
+                            button
+                                .setIcon('rotate-ccw')
+                                .setTooltip('重置为默认颜色')
+                                .onClick(async () => {
+                                    await this.dataStorage.saveCSSGroupColor(groupKey, '');
+                                    this.display();
                                 });
-                            
-                            // 自动聚焦
-                            setTimeout(() => {
-                                text.inputEl.focus();
-                                text.inputEl.select();
-                            }, 0);
-                            
-                            // 键盘事件
-                            text.inputEl.addEventListener('keydown', (e) => {
-                                if (e.key === 'Enter') {
-                                    e.preventDefault();
-                                    this.saveEdit(groupKey, 'css');
-                                } else if (e.key === 'Escape') {
-                                    this.cancelEdit();
-                                }
-                            });
-                            
-                            // 失去焦点时保存
-                            text.inputEl.addEventListener('blur', () => {
-                                this.saveEdit(groupKey, 'css');
-                            });
+                        })
+                        .addExtraButton((button) => {
+                            button
+                                .setIcon('trash-2')
+                                .setTooltip('删除分组')
+                                .onClick(async () => {
+                                    await this.deleteGroup(groupKey, 'css');
+                                });
                         });
+
+                    if (isEditing) {
+                        // 编辑模式：在nameEl中放置输入框
+                        setting.nameEl.empty();
+                        const input = setting.nameEl.createEl('input', {
+                            type: 'text',
+                            value: this.editingGroup!.value,
+                            cls: 'obsidianx-inline-rename-input'
+                        });
+                        
+                        input.addEventListener('input', (e) => {
+                            if (this.editingGroup) {
+                                this.editingGroup.value = (e.target as HTMLInputElement).value;
+                            }
+                        });
+                        
+                        input.addEventListener('keydown', (e) => {
+                            if (e.key === 'Enter') {
+                                e.preventDefault();
+                                this.saveEdit(groupKey, 'css');
+                            } else if (e.key === 'Escape') {
+                                this.cancelEdit();
+                            }
+                        });
+                        
+                        input.addEventListener('blur', () => {
+                            this.saveEdit(groupKey, 'css');
+                        });
+
+                        setTimeout(() => {
+                            input.focus();
+                            input.select();
+                        }, 0);
                     } else {
                         // 显示模式
-                        setting
-                            .setName(groupName)
-                            .addExtraButton((button) => {
-                                button
-                                    .setIcon('trash-2')
-                                    .setTooltip('删除分组')
-                                    .onClick(async () => {
-                                        await this.deleteGroup(groupKey, 'css');
-                                    });
-                            });
-                        
-                        // 点击名称进入编辑
-                        setting.nameEl.style.cursor = 'pointer';
+                        setting.setName(groupName);
+                        setting.nameEl.addClass('obsidianx-clickable');
                         setting.nameEl.addEventListener('click', () => {
                             this.editingGroup = { type: 'css', key: groupKey, value: groupName };
                             this.display();
@@ -241,8 +271,13 @@ export class GroupManagementSettingTab extends PluginSettingTab {
             this.cancelEdit();
             return;
         }
+
+        const groups = type === 'plugin'
+            ? this.dataStorage.getSettings().groups
+            : this.dataStorage.getSettings().cssGroups;
+        const oldName = groups[groupKey] || '';
         
-        if (newName !== this.editingGroup.value) {
+        if (newName !== oldName) {
             await this.updateGroupName(groupKey, newName, type);
         }
         
@@ -445,7 +480,7 @@ export class GroupManagementSettingTab extends PluginSettingTab {
                                 await this.plugin.saveSettings();
                             });
                     });
-                setting.settingEl.style.borderTop = 'none'; // 移除分隔线
+                setting.settingEl.addClass('obsidianx-no-border-top');
             });
         }
     }
@@ -474,12 +509,8 @@ class AddGroupModal extends Modal {
         const input = inputContainer.createEl('input', {
             type: 'text',
             placeholder: '输入分组名称',
-            cls: 'albus-obsidianx-modal-input'
+            cls: 'obsidianx-modal-input'
         });
-        input.style.width = '100%';
-        input.style.padding = '8px';
-        input.style.marginTop = '12px';
-        input.style.marginBottom = '16px';
 
         input.addEventListener('keydown', (e) => {
             if (e.key === 'Enter') {
@@ -490,10 +521,7 @@ class AddGroupModal extends Modal {
             }
         });
 
-        const buttonContainer = contentEl.createDiv();
-        buttonContainer.style.display = 'flex';
-        buttonContainer.style.justifyContent = 'flex-end';
-        buttonContainer.style.gap = '8px';
+        const buttonContainer = contentEl.createDiv('obsidianx-modal-buttons');
 
         const cancelBtn = buttonContainer.createEl('button', { text: '取消' });
         cancelBtn.addEventListener('click', () => this.close());

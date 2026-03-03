@@ -1,12 +1,20 @@
-import { App, Modal, Notice, setIcon, PluginManifest, ToggleComponent } from 'obsidian';
+import { App, Modal, Menu, Notice, setIcon, ToggleComponent, normalizePath } from 'obsidian';
 import { DataStorage } from './data-storage';
 import { PluginInfo, CSSSnippetInfo, FilterType } from './types';
-import { filterPlugins, sortPlugins, formatDate } from './utils';
+import { filterPlugins, sortPlugins } from './utils';
 
 /**
  * 插件管理器模态框
  */
 export class PluginManagerModal extends Modal {
+    /** 保存页面浏览状态（跨模态实例） */
+    private static savedState: {
+        searchTerm: string;
+        filterEnabled: FilterType;
+        selectedGroup: string;
+        scrollTop: number;
+    } | null = null;
+
     private dataStorage: DataStorage;
     private searchTerm: string = '';
     private filterEnabled: FilterType = 'all';
@@ -14,7 +22,6 @@ export class PluginManagerModal extends Modal {
     private editingRemark: { pluginId: string; value: string } | null = null;
     private editingDescription: { snippetName: string; value: string } | null = null;
     private renamingSnippet: { name: string; newName: string } | null = null;
-    private showGroupDropdown: string | null = null;
 
     private pluginListEl: HTMLElement;
     private statsEl: HTMLElement;
@@ -27,18 +34,41 @@ export class PluginManagerModal extends Modal {
     onOpen() {
         const { contentEl, containerEl } = this;
         containerEl.addClass('albus-obsidianx-plugin-manager-modal');
+
+        // 恢复上次浏览状态
+        if (PluginManagerModal.savedState) {
+            this.searchTerm = PluginManagerModal.savedState.searchTerm;
+            this.filterEnabled = PluginManagerModal.savedState.filterEnabled;
+            this.selectedGroup = PluginManagerModal.savedState.selectedGroup;
+        }
         
         this.buildUI();
         this.refresh();
 
-        // 点击外部关闭下拉框
-        document.addEventListener('mousedown', this.handleClickOutside);
+        // 恢复滚动位置
+        if (PluginManagerModal.savedState) {
+            const scrollableList = this.contentEl.querySelector('.albus-obsidianx-scrollable-list') as HTMLElement;
+            if (scrollableList) {
+                requestAnimationFrame(() => {
+                    scrollableList.scrollTop = PluginManagerModal.savedState?.scrollTop ?? 0;
+                });
+            }
+        }
+
     }
 
     onClose() {
+        // 保存浏览状态
+        const scrollableList = this.contentEl.querySelector('.albus-obsidianx-scrollable-list') as HTMLElement;
+        PluginManagerModal.savedState = {
+            searchTerm: this.searchTerm,
+            filterEnabled: this.filterEnabled,
+            selectedGroup: this.selectedGroup,
+            scrollTop: scrollableList ? scrollableList.scrollTop : 0,
+        };
+
         const { contentEl } = this;
         contentEl.empty();
-        document.removeEventListener('mousedown', this.handleClickOutside);
     }
 
     /**
@@ -104,9 +134,19 @@ export class PluginManagerModal extends Modal {
             const nameEl = groupItem.createDiv('albus-obsidianx-sidebar-item-name');
             nameEl.textContent = groups[groupKey] || '';
             
-            // 计算统计数据
+            // 计算统计数据（考虑搜索和状态筛选）
             const actualGroupKey = groupKey;
+            const isSpecialSearch = this.searchTerm === '???';
             const filteredPlugins = allPlugins.filter(p => {
+                // 特殊搜索：查找未添加描述的插件
+                if (isSpecialSearch) {
+                    const matchesGroup = actualGroupKey === 'all' || p.group === actualGroupKey;
+                    const matchesStatus = this.filterEnabled === 'all' ||
+                        (this.filterEnabled === 'enabled' && p.enabled) ||
+                        (this.filterEnabled === 'disabled' && !p.enabled);
+                    return !p.remark.trim() && matchesGroup && matchesStatus;
+                }
+
                 // 搜索过滤
                 const lowerSearchTerm = this.searchTerm.toLowerCase();
                 const matchesSearch = lowerSearchTerm === '' ||
@@ -117,16 +157,20 @@ export class PluginManagerModal extends Modal {
                 
                 // 分组过滤
                 const matchesGroup = actualGroupKey === 'all' || p.group === actualGroupKey;
+
+                // 状态过滤
+                const matchesStatus = this.filterEnabled === 'all' ||
+                    (this.filterEnabled === 'enabled' && p.enabled) ||
+                    (this.filterEnabled === 'disabled' && !p.enabled);
                 
-                return matchesSearch && matchesGroup;
+                return matchesSearch && matchesGroup && matchesStatus;
             });
             
-            const enabledCount = filteredPlugins.filter(p => p.enabled).length;
             const totalCount = filteredPlugins.length;
             
-            // 显示统计
+            // 显示统计（仅显示总匹配数）
             const countEl = groupItem.createDiv('albus-obsidianx-sidebar-item-count');
-            countEl.textContent = `${enabledCount}/${totalCount}`;
+            countEl.textContent = `${totalCount}`;
             
             groupItem.addEventListener('click', () => {
                 this.selectedGroup = pluginGroupKey;
@@ -161,9 +205,19 @@ export class PluginManagerModal extends Modal {
             const nameEl = groupItem.createDiv('albus-obsidianx-sidebar-item-name');
             nameEl.textContent = cssGroups[groupKey] || '';
             
-            // 计算统计数据
+            // 计算统计数据（考虑搜索和状态筛选）
             const actualGroupKey = groupKey;
+            const isSpecialCssSearch = this.searchTerm === '???';
             const filteredSnippets = allSnippets.filter(s => {
+                // 特殊搜索：查找未添加描述的片段
+                if (isSpecialCssSearch) {
+                    const matchesGroup = actualGroupKey === 'all' || s.group === actualGroupKey;
+                    const matchesStatus = this.filterEnabled === 'all' ||
+                        (this.filterEnabled === 'enabled' && s.enabled) ||
+                        (this.filterEnabled === 'disabled' && !s.enabled);
+                    return !s.description.trim() && matchesGroup && matchesStatus;
+                }
+
                 // 搜索过滤
                 const lowerSearchTerm = this.searchTerm.toLowerCase();
                 const matchesSearch = lowerSearchTerm === '' ||
@@ -172,16 +226,20 @@ export class PluginManagerModal extends Modal {
                 
                 // 分组过滤
                 const matchesGroup = actualGroupKey === 'all' || s.group === actualGroupKey;
+
+                // 状态过滤
+                const matchesStatus = this.filterEnabled === 'all' ||
+                    (this.filterEnabled === 'enabled' && s.enabled) ||
+                    (this.filterEnabled === 'disabled' && !s.enabled);
                 
-                return matchesSearch && matchesGroup;
+                return matchesSearch && matchesGroup && matchesStatus;
             });
             
-            const enabledCount = filteredSnippets.filter(s => s.enabled).length;
             const totalCount = filteredSnippets.length;
             
-            // 显示统计
+            // 显示统计（仅显示总匹配数）
             const countEl = groupItem.createDiv('albus-obsidianx-sidebar-item-count');
-            countEl.textContent = `${enabledCount}/${totalCount}`;
+            countEl.textContent = `${totalCount}`;
             
             groupItem.addEventListener('click', () => {
                 this.selectedGroup = cssGroupKey;
@@ -209,8 +267,9 @@ export class PluginManagerModal extends Modal {
         searchInput.value = this.searchTerm;
         searchInput.addEventListener('input', (e) => {
             this.searchTerm = (e.target as HTMLInputElement).value;
-            // 只更新列表和统计，不重建工具栏
+            // 更新列表、统计和侧边栏计数
             this.updateStats();
+            this.updateSidebarStats();
             this.updatePluginList();
         });
         
@@ -393,11 +452,6 @@ export class PluginManagerModal extends Modal {
      */
     private filterCSSSnippets(snippets: CSSSnippetInfo[]): CSSSnippetInfo[] {
         return snippets.filter(snippet => {
-            const lowerSearchTerm = this.searchTerm.toLowerCase();
-            const matchesSearch = lowerSearchTerm === "" ||
-                snippet.name.toLowerCase().includes(lowerSearchTerm) ||
-                snippet.description.toLowerCase().includes(lowerSearchTerm);
-
             const matchesStatus = this.filterEnabled === "all" ||
                 (this.filterEnabled === "enabled" && snippet.enabled) ||
                 (this.filterEnabled === "disabled" && !snippet.enabled);
@@ -405,6 +459,16 @@ export class PluginManagerModal extends Modal {
             // 提取实际的分组key（移除'css-'前缀）
             const actualGroup = this.selectedGroup.replace('css-', '');
             const matchesGroup = actualGroup === "all" || snippet.group === actualGroup;
+
+            // 特殊搜索：查找未添加描述的片段
+            if (this.searchTerm === '???') {
+                return !snippet.description.trim() && matchesStatus && matchesGroup;
+            }
+
+            const lowerSearchTerm = this.searchTerm.toLowerCase();
+            const matchesSearch = lowerSearchTerm === "" ||
+                snippet.name.toLowerCase().includes(lowerSearchTerm) ||
+                snippet.description.toLowerCase().includes(lowerSearchTerm);
 
             return matchesSearch && matchesStatus && matchesGroup;
         });
@@ -515,11 +579,9 @@ export class PluginManagerModal extends Modal {
             // 显示重命名输入框
             const input = header.createEl('input', {
                 type: 'text',
-                value: this.renamingSnippet.newName
+                value: this.renamingSnippet.newName,
+                cls: 'obsidianx-rename-input'
             });
-            input.style.width = '100%';
-            input.style.padding = '4px 8px';
-            input.style.fontSize = 'var(--font-ui-medium)';
             
             input.addEventListener('input', (e) => {
                 if (this.renamingSnippet) {
@@ -550,8 +612,23 @@ export class PluginManagerModal extends Modal {
                 input.select();
             }, 0);
         } else {
-            const name = header.createSpan('albus-obsidianx-plugin-name');
+            const name = header.createSpan('albus-obsidianx-plugin-name albus-obsidianx-editable-name');
             name.textContent = snippet.name;
+            name.addEventListener('click', () => {
+                this.startRenamingSnippet(snippet);
+            });
+
+            // 分类标签
+            const cssGroups = this.dataStorage.getSettings().cssGroups;
+            const cssGroupName = cssGroups[snippet.group];
+            if (cssGroupName && snippet.group !== 'all') {
+                const tag = header.createSpan('albus-obsidianx-category-tag');
+                tag.textContent = cssGroupName;
+                const customColor = this.dataStorage.getCSSGroupColor(snippet.group);
+                if (customColor) {
+                    tag.style.backgroundColor = customColor;
+                }
+            }
         }
 
         // 描述区域
@@ -619,22 +696,10 @@ export class PluginManagerModal extends Modal {
             cls: 'albus-obsidianx-settings-button',
             attr: { 'aria-label': '打开文件' }
         });
-        const openIcon = openBtn.createSpan();
-        setIcon(openIcon, 'file-code');
+        setIcon(openBtn, 'file-code');
         openBtn.addEventListener('click', () => {
             // @ts-ignore - Obsidian内部API
             this.app.openWithDefaultApp(snippet.path);
-        });
-
-        // 重命名按钮
-        const renameBtn = parent.createEl('button', {
-            cls: 'albus-obsidianx-settings-button',
-            attr: { 'aria-label': '重命名CSS片段' }
-        });
-        const renameIcon = renameBtn.createSpan();
-        setIcon(renameIcon, 'text-cursor-input');
-        renameBtn.addEventListener('click', () => {
-            this.startRenamingSnippet(snippet);
         });
 
         // 删除按钮
@@ -642,8 +707,7 @@ export class PluginManagerModal extends Modal {
             cls: 'albus-obsidianx-delete-button',
             attr: { 'aria-label': '删除CSS片段' }
         });
-        const deleteIcon = deleteBtn.createSpan();
-        setIcon(deleteIcon, 'trash-2');
+        setIcon(deleteBtn, 'trash-2');
         deleteBtn.addEventListener('click', () => {
             this.deleteCSSSnippet(snippet);
         });
@@ -656,50 +720,34 @@ export class PluginManagerModal extends Modal {
      * 构建CSS片段分组按钮
      */
     private buildCSSSnippetGroupButton(parent: HTMLElement, snippet: CSSSnippetInfo): void {
-        const dropdown = parent.createDiv('albus-obsidianx-group-dropdown');
-        
-        const button = dropdown.createEl('button', {
+        const button = parent.createEl('button', {
             cls: 'albus-obsidianx-group-button',
             attr: { 'aria-label': '切换分组' }
         });
-        const buttonIcon = button.createSpan();
-        setIcon(buttonIcon, 'tag');
+        setIcon(button, 'tag');
 
         button.addEventListener('click', (e) => {
             e.preventDefault();
             e.stopPropagation();
-            this.showGroupDropdown = this.showGroupDropdown === snippet.name ? null : snippet.name;
-            this.updatePluginList();
-        });
-
-        if (this.showGroupDropdown === snippet.name) {
-            const content = dropdown.createDiv('albus-obsidianx-group-dropdown-content');
+            const menu = new Menu();
             const cssGroups = this.dataStorage.getSettings().cssGroups;
-            
+
             Object.keys(cssGroups)
                 .filter(key => key !== 'all')
                 .forEach(groupKey => {
-                    const optionEl = content.createDiv('albus-obsidianx-group-option');
-                    if (snippet.group === groupKey) {
-                        optionEl.addClass('active');
-                    }
-                    optionEl.textContent = cssGroups[groupKey] || '';
-                    
-                    if (snippet.group === groupKey) {
-                        const checkIcon = optionEl.createSpan();
-                        setIcon(checkIcon, 'check');
-                    }
-
-                    optionEl.addEventListener('click', async (e) => {
-                        e.preventDefault();
-                        e.stopPropagation();
-                        await this.dataStorage.saveCSSSnippetMetadata(snippet.name, { group: groupKey });
-                        this.showGroupDropdown = null;
-                        this.updateSidebarStats();
-                        this.updatePluginList();
+                    menu.addItem((item) => {
+                        item.setTitle(cssGroups[groupKey] || '')
+                            .setChecked(snippet.group === groupKey)
+                            .onClick(async () => {
+                                await this.dataStorage.saveCSSSnippetMetadata(snippet.name, { group: groupKey });
+                                this.updateSidebarStats();
+                                this.updatePluginList();
+                            });
                     });
                 });
-        }
+
+            menu.showAtMouseEvent(e as MouseEvent);
+        });
     }
 
     /**
@@ -733,7 +781,7 @@ export class PluginManagerModal extends Modal {
             const customCss = this.app.customCss;
             const snippetsFolder = customCss.getSnippetsFolder();
             const oldPath = customCss.getSnippetPath(oldName);
-            const newPath = `${snippetsFolder}/${newName}.css`;
+            const newPath = normalizePath(`${snippetsFolder}/${newName}.css`);
 
             // 检查新名称是否已存在
             if (customCss.snippets.includes(newName)) {
@@ -861,13 +909,13 @@ export class PluginManagerModal extends Modal {
             }
 
             // 确保snippets文件夹存在
-            const snippetsPath = `${this.app.vault.configDir}/snippets`;
+            const snippetsPath = normalizePath(`${this.app.vault.configDir}/snippets`);
             if (!await this.app.vault.adapter.exists(snippetsPath)) {
                 await this.app.vault.adapter.mkdir(snippetsPath);
             }
 
             // 检查文件是否已存在
-            const filePath = `${snippetsPath}/${snippetName}.css`;
+            const filePath = normalizePath(`${snippetsPath}/${snippetName}.css`);
             if (await this.app.vault.adapter.exists(filePath)) {
                 new Notice('该CSS片段已存在');
                 return;
@@ -945,15 +993,25 @@ export class PluginManagerModal extends Modal {
     private buildPluginInfo(parent: HTMLElement, plugin: PluginInfo): void {
         // 插件标题
         const header = parent.createDiv('albus-obsidianx-plugin-header');
+
         const name = header.createSpan('albus-obsidianx-plugin-name');
         name.textContent = plugin.name;
 
         if (plugin.isDesktopOnly) {
             const badge = header.createSpan('albus-obsidianx-desktop-only-badge');
-            badge.setAttribute('title', '仅桌面端可用');
-            const badgeIcon = badge.createSpan();
-            setIcon(badgeIcon, 'monitor');
-            badge.appendText('仅桌面端');
+            badge.textContent = '桌面端';
+        }
+
+        // 分类标签
+        const pluginGroups = this.dataStorage.getSettings().groups;
+        const pluginGroupName = pluginGroups[plugin.group];
+        if (pluginGroupName && plugin.group !== 'all') {
+            const tag = header.createSpan('albus-obsidianx-category-tag');
+            tag.textContent = pluginGroupName;
+            const customColor = this.dataStorage.getGroupColor(plugin.group);
+            if (customColor) {
+                tag.style.backgroundColor = customColor;
+            }
         }
 
         // 版本信息
@@ -1039,22 +1097,24 @@ export class PluginManagerModal extends Modal {
      * 构建插件操作按钮
      */
     private buildPluginActions(parent: HTMLElement, plugin: PluginInfo): void {
-        // 设置按钮
-        const settingsBtn = parent.createEl('button', {
-            cls: 'albus-obsidianx-settings-button',
-            attr: { 'aria-label': plugin.enabled ? '打开插件设置' : '插件未启用，无法打开设置' }
-        });
-        if (!plugin.enabled) {
-            settingsBtn.addClass('disabled');
-        }
-        const settingsIcon = settingsBtn.createSpan();
-        setIcon(settingsIcon, 'settings');
-        
-        settingsBtn.addEventListener('click', () => {
-            if (plugin.enabled) {
-                this.openPluginSettings(plugin.id);
+        // 设置按钮（仅当插件有设置页时显示）
+        const hasSettings = this.pluginHasSettings(plugin.id);
+        if (hasSettings) {
+            const settingsBtn = parent.createEl('button', {
+                cls: 'albus-obsidianx-settings-button',
+                attr: { 'aria-label': plugin.enabled ? '打开插件设置' : '插件未启用，无法打开设置' }
+            });
+            if (!plugin.enabled) {
+                settingsBtn.addClass('disabled');
             }
-        });
+            setIcon(settingsBtn, 'settings');
+            
+            settingsBtn.addEventListener('click', () => {
+                if (plugin.enabled) {
+                    this.openPluginSettings(plugin.id);
+                }
+            });
+        }
 
         // 分组按钮
         this.buildGroupButton(parent, plugin);
@@ -1064,8 +1124,7 @@ export class PluginManagerModal extends Modal {
             cls: 'albus-obsidianx-delete-button',
             attr: { 'aria-label': '卸载插件' }
         });
-        const deleteIcon = deleteBtn.createSpan();
-        setIcon(deleteIcon, 'trash-2');
+        setIcon(deleteBtn, 'trash-2');
         
         deleteBtn.addEventListener('click', () => {
             this.confirmUninstall(plugin);
@@ -1079,50 +1138,34 @@ export class PluginManagerModal extends Modal {
      * 构建分组按钮
      */
     private buildGroupButton(parent: HTMLElement, plugin: PluginInfo): void {
-        const dropdown = parent.createDiv('albus-obsidianx-group-dropdown');
-        
-        const button = dropdown.createEl('button', {
+        const button = parent.createEl('button', {
             cls: 'albus-obsidianx-group-button',
             attr: { 'aria-label': '切换分组' }
         });
-        const buttonIcon = button.createSpan();
-        setIcon(buttonIcon, 'tag');
+        setIcon(button, 'tag');
 
         button.addEventListener('click', (e) => {
             e.preventDefault();
             e.stopPropagation();
-            this.showGroupDropdown = this.showGroupDropdown === plugin.id ? null : plugin.id;
-            this.updatePluginList();
-        });
-
-        if (this.showGroupDropdown === plugin.id) {
-            const content = dropdown.createDiv('albus-obsidianx-group-dropdown-content');
+            const menu = new Menu();
             const groups = this.dataStorage.getSettings().groups;
-            
+
             Object.keys(groups)
                 .filter(key => key !== 'all')
                 .forEach(groupKey => {
-                    const optionEl = content.createDiv('albus-obsidianx-group-option');
-                    if (plugin.group === groupKey) {
-                        optionEl.addClass('active');
-                    }
-                    optionEl.textContent = groups[groupKey] || '';
-                    
-                    if (plugin.group === groupKey) {
-                        const checkIcon = optionEl.createSpan();
-                        setIcon(checkIcon, 'check');
-                    }
-
-                    optionEl.addEventListener('click', async (e) => {
-                        e.preventDefault();
-                        e.stopPropagation();
-                        await this.dataStorage.savePluginMetadata(plugin.id, { group: groupKey });
-                        this.showGroupDropdown = null;
-                        this.updateSidebarStats();
-                        this.updatePluginList();
+                    menu.addItem((item) => {
+                        item.setTitle(groups[groupKey] || '')
+                            .setChecked(plugin.group === groupKey)
+                            .onClick(async () => {
+                                await this.dataStorage.savePluginMetadata(plugin.id, { group: groupKey });
+                                this.updateSidebarStats();
+                                this.updatePluginList();
+                            });
                     });
                 });
-        }
+
+            menu.showAtMouseEvent(e as MouseEvent);
+        });
     }
 
     /**
@@ -1189,6 +1232,15 @@ export class PluginManagerModal extends Modal {
     /**
      * 打开插件设置
      */
+    /**
+     * 检测插件是否有设置页
+     */
+    private pluginHasSettings(pluginId: string): boolean {
+        // @ts-ignore - Obsidian内部API
+        const pluginTabs = this.app.setting?.pluginTabs || [];
+        return pluginTabs.some((tab: any) => tab.id === pluginId);
+    }
+
     private openPluginSettings(pluginId: string): void {
         // 关闭当前模态框
         this.close();
@@ -1238,32 +1290,6 @@ export class PluginManagerModal extends Modal {
         }
     }
 
-    /**
-     * 获取状态标签
-     */
-    /**
-     * 获取分组标签
-     */
-    private getGroupLabel(): string {
-        const groups = this.dataStorage.getSettings().groups;
-        return groups[this.selectedGroup] || "全部分组";
-    }
-
-    /**
-     * 处理点击外部
-     */
-    private handleClickOutside = (event: MouseEvent): void => {
-        const target = event.target as HTMLElement;
-        
-        const dropdowns = ['.albus-obsidianx-group-dropdown'];
-        
-        if (!dropdowns.some(selector => target.closest(selector))) {
-            if (this.showGroupDropdown) {
-                this.showGroupDropdown = null;
-                this.refresh();
-            }
-        }
-    }
 }
 
 /**
@@ -1290,13 +1316,9 @@ class UninstallConfirmModal extends Modal {
         const pluginName = message.createEl('strong');
         pluginName.textContent = this.plugin.name;
         message.appendText('" 吗？');
-        message.style.marginTop = '12px';
-        message.style.marginBottom = '16px';
+        message.addClass('obsidianx-modal-message');
 
-        const buttonContainer = contentEl.createDiv();
-        buttonContainer.style.display = 'flex';
-        buttonContainer.style.justifyContent = 'flex-end';
-        buttonContainer.style.gap = '8px';
+        const buttonContainer = contentEl.createDiv('obsidianx-modal-buttons');
 
         const cancelBtn = buttonContainer.createEl('button', { text: '取消' });
         cancelBtn.addEventListener('click', () => this.close());
@@ -1334,29 +1356,27 @@ class CreateSnippetModal extends Modal {
         
         const input = contentEl.createEl('input', {
             type: 'text',
-            placeholder: '输入片段名称'
+            placeholder: '输入片段名称',
+            cls: 'obsidianx-modal-input'
         });
-        input.style.width = '100%';
-        input.style.padding = '8px';
-        input.style.marginTop = '12px';
-        input.style.marginBottom = '16px';
 
         input.addEventListener('input', (e) => {
             this.snippetName = (e.target as HTMLInputElement).value.trim();
         });
 
         input.addEventListener('keydown', (e) => {
-            if (e.key === 'Enter' && this.snippetName) {
-                this.confirm();
+            if (e.key === 'Enter') {
+                e.preventDefault();
+                e.stopPropagation();
+                if (this.snippetName) {
+                    this.confirm();
+                }
             } else if (e.key === 'Escape') {
                 this.close();
             }
         });
 
-        const buttonContainer = contentEl.createDiv();
-        buttonContainer.style.display = 'flex';
-        buttonContainer.style.justifyContent = 'flex-end';
-        buttonContainer.style.gap = '8px';
+        const buttonContainer = contentEl.createDiv('obsidianx-modal-buttons');
 
         const cancelBtn = buttonContainer.createEl('button', { text: '取消' });
         cancelBtn.addEventListener('click', () => this.close());

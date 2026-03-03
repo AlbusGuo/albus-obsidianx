@@ -1,9 +1,4 @@
 /**
- * 视图类型
- */
-export type ViewType = 'plugins' | 'css-snippets';
-
-/**
  * 插件元数据接口
  */
 export interface PluginMetadata {
@@ -84,6 +79,10 @@ export interface ObsidianXSettings {
     groups: GroupConfig;
     /** CSS片段分组配置 */
     cssGroups: GroupConfig;
+    /** 插件分组标签颜色 */
+    groupColors: Record<string, string>;
+    /** CSS片段分组标签颜色 */
+    cssGroupColors: Record<string, string>;
     /** 插件元数据 */
     metadata: Record<string, PluginMetadata>;
     /** CSS片段元数据 */
